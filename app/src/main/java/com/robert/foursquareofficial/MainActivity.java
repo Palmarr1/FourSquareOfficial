@@ -15,7 +15,7 @@ public class MainActivity extends Activity {
     }
 
     public void NextScreen(View v){
-        Intent i = new Intent(MainActivity.this,login.class);
+        Intent i = new Intent(MainActivity.this,locationActivity.class);
         startActivity(i);
     }
 }
