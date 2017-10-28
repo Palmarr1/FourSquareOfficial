@@ -21,6 +21,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 
+import com.facebook.all.All;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
@@ -46,7 +47,7 @@ public class locationActivity extends AppCompatActivity implements AdapterView.O
 
     private RecyclerView recyclerView;
     private MyAdapter adapter;
-    private List<AllLocation> listLocation;
+    private List<AllLocation> listLocation = new ArrayList<AllLocation>();
     private LocationManager locationManager;
     private LocationListener locationListener;
     public String currentUser;
@@ -60,81 +61,12 @@ public class locationActivity extends AppCompatActivity implements AdapterView.O
 
         Log.i("USER",currentUser);
 
-
         recyclerView = (RecyclerView)findViewById(R.id.recyclerView);
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        listLocation = new ArrayList<>();
+        setLocations();
 
-        DownloadJSON dJson = new DownloadJSON();
-
-        String resultsTemp = "";
-        try{
-            resultsTemp = dJson.execute().get();
-        }catch(Exception e){e.printStackTrace();}
-
-        JSONObject jObject;
-        try{
-            jObject = new JSONObject(resultsTemp);
-
-            for(int x = 0; x < jObject.length();x++){
-                JSONObject jsonPart = new JSONObject(jObject.getString(jObject.names().get(x).toString()));
-
-                AllLocation allI = new AllLocation();
-
-                allI.dateTime = jsonPart.getString("datetime");
-                allI.longitude = jsonPart.getString("longitude");
-                allI.latitude = jsonPart.getString("latitude");
-                allI.id = jObject.names().get(x).toString();
-
-                if(jsonPart.has("location")){
-                    JSONObject finalLocation = jsonPart.getJSONObject("location");
-
-                    String ID = finalLocation.getString("id");
-                    String name = finalLocation.getString("name");
-                    IndividualLocation newLocation = new IndividualLocation(ID,name);
-
-                    allI.addLocation(newLocation);
-
-                    allI.setLocation(ID);
-
-
-
-                }else{
-                    JSONArray possibleLocations = jsonPart.getJSONArray("possibleLocations");
-
-                    for(int j = 0; j < possibleLocations.length(); j++){
-                        JSONObject indLocation = possibleLocations.getJSONObject(j);
-
-
-                        String ID = indLocation.getString("id");
-                        String name = indLocation.getString("name");
-                        IndividualLocation newLocation = new IndividualLocation(ID,name);
-
-                        allI.addLocation(newLocation);
-
-                        if(possibleLocations.length() == 1){
-                            allI.setLocation(indLocation.getString("id"));
-                        }
-                    }
-                }
-
-
-
-                JSONArray commentsJSON = jsonPart.getJSONArray("comments");
-                for(int j = 0; j < commentsJSON.length(); j++){
-                    JSONObject indComment = commentsJSON.getJSONObject(j);
-
-                    comment c = new comment(indComment.getString("date"),indComment.getString("user"),indComment.getString("comment"));
-                    allI.addComment(c);
-                }
-
-                listLocation.add(allI);
-                Log.i("I","Location Added");
-
-            }
-        }catch(Exception e){e.printStackTrace();}
         adapter = new MyAdapter(listLocation,this,getApplicationContext());
         recyclerView.setAdapter(adapter);
 
@@ -215,6 +147,75 @@ public class locationActivity extends AppCompatActivity implements AdapterView.O
         }
     }
 
+    public int setLocations(){
+        Log.i("I","CONFIGHERE");
+        listLocation = new ArrayList<AllLocation>();
+        DownloadJSON dJson = new DownloadJSON();
+
+        String resultsTemp = "";
+        try{
+            resultsTemp = dJson.execute().get();
+        }catch(Exception e){e.printStackTrace();}
+
+        JSONObject jObject;
+        try{
+            jObject = new JSONObject(resultsTemp);
+
+            for(int x = 0; x < jObject.length();x++){
+                JSONObject jsonPart = new JSONObject(jObject.getString(jObject.names().get(x).toString()));
+
+                AllLocation allI = new AllLocation();
+
+                allI.dateTime = jsonPart.getString("datetime");
+                allI.longitude = jsonPart.getString("longitude");
+                allI.latitude = jsonPart.getString("latitude");
+                allI.id = jObject.names().get(x).toString();
+
+                if(jsonPart.has("location")){
+                    JSONObject finalLocation = jsonPart.getJSONObject("location");
+
+                    String ID = finalLocation.getString("id");
+                    String name = finalLocation.getString("name");
+                    IndividualLocation newLocation = new IndividualLocation(ID,name);
+
+                    allI.addLocation(newLocation);
+                    allI.setLocation(ID);
+
+                }else{
+                    JSONArray possibleLocations = jsonPart.getJSONArray("possibleLocations");
+
+                    for(int j = 0; j < possibleLocations.length(); j++){
+                        JSONObject indLocation = possibleLocations.getJSONObject(j);
+
+                        String ID = indLocation.getString("id");
+                        String name = indLocation.getString("name");
+                        IndividualLocation newLocation = new IndividualLocation(ID,name);
+
+                        allI.addLocation(newLocation);
+
+                        if(possibleLocations.length() == 1){
+                            allI.setLocation(indLocation.getString("id"));
+                        }
+                    }
+                }
+
+                JSONArray commentsJSON = jsonPart.getJSONArray("comments");
+                for(int j = 0; j < commentsJSON.length(); j++){
+                    JSONObject indComment = commentsJSON.getJSONObject(j);
+
+                    comment c = new comment(indComment.getString("date"),indComment.getString("user"),indComment.getString("comment"));
+                    allI.addComment(c);
+                }
+
+                listLocation.add(allI);
+                Log.i("I","Location Added");
+
+            }
+        }catch(Exception e){e.printStackTrace();}
+
+        return 0;
+    }
+
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         AllLocation item = adapter.getItem(position);
 
@@ -244,15 +245,31 @@ public class locationActivity extends AppCompatActivity implements AdapterView.O
                 Log.i("F", strEditText);
             }
             else if(strEditText.equals("-2")){
-                FirebaseDatabase database = FirebaseDatabase.getInstance();
-                DatabaseReference myRef = database.getReference("locations");
+
+                DatabaseReference myRef = FirebaseDatabase.getInstance().getReference().child("locations");
 
                 myRef.child(listLocation.get(requestCode).id).removeValue();
+
                 listLocation.remove(requestCode);
                 adapter.notifyDataSetChanged();
 
             }else{
-                adapter.setLocation(requestCode,Integer.parseInt(strEditText));
+                Log.i("I","REACHING");
+                DatabaseReference myRef2 = FirebaseDatabase.getInstance().getReference().child("locations");
+
+                IndividualLocation i= listLocation.get(requestCode).individual.get(Integer.parseInt(strEditText));
+
+                //Remove other possible value
+                myRef2.child(listLocation.get(requestCode).id).child("possibleLocations").removeValue();
+
+                //Setting ID
+                myRef2.child(listLocation.get(requestCode).id).child("location").child("id").setValue(i.getID());
+
+                //Setting Name
+                myRef2.child(listLocation.get(requestCode).id).child("location").child("name").setValue(i.getName());
+
+                int x = setLocations();
+                adapter.notifyDataSetChanged();
             }
         }
     }

@@ -64,6 +64,7 @@ public class login extends AppCompatActivity {
                         DatabaseReference myRef = database.getReference("users");
 
                         myRef.child(loginResult.getAccessToken().getUserId()).child("id").setValue(loginResult.getAccessToken().getUserId());
+                        database.goOffline();
 
                         Intent i = new Intent(login.this,locationActivity.class);
 
