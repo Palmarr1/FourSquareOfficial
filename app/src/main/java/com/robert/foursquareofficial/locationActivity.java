@@ -55,91 +55,56 @@ public class locationActivity extends AppCompatActivity implements AdapterView.O
 
         listLocation = new ArrayList<>();
 
+        DownloadJSON dJson = new DownloadJSON();
 
-        //Parse Current Records
-
-        String currentRecords = "{\n" +
-                "    \"locations\": [\n" +
-                "      {\n" +
-                "        \"datetime\":\"01/01/2017\",\n" +
-                "        \"possibleLocations\":[\n" +
-                "            {\n" +
-                "              \"id\":\"1\",\n" +
-                "              \"name\":\"NJIT\"\n" +
-                "            },\n" +
-                "            {\n" +
-                "              \"id\":\"2\",\n" +
-                "              \"name\":\"Rutgers\"\n" +
-                "            },\n" +
-                "            {\n" +
-                "              \"id\":\"3\",\n" +
-                "              \"name\":\"Prudential Center\"\n" +
-                "            }\n" +
-                "          ],\n" +
-                "        \"comments\":{\n" +
-                "          \n" +
-                "        }\n" +
-                "      },\n" +
-                "      {\n" +
-                "        \"datetime\":\"02/01/2017\",\n" +
-                "        \"possibleLocations\":[\n" +
-                "            {\n" +
-                "              \"id\":\"4\",\n" +
-                "              \"name\":\"Wayne\"\n" +
-                "            },\n" +
-                "            {\n" +
-                "              \"id\":\"5\",\n" +
-                "              \"name\":\"Packanack\"\n" +
-                "            },\n" +
-                "            {\n" +
-                "              \"id\":\"6\",\n" +
-                "              \"name\":\"Valley\"\n" +
-                "            }\n" +
-                "          ],\n" +
-                "        \"comments\":{\n" +
-                "        }\n" +
-                "      },\n" +
-                "      {\n" +
-                "        \"datetime\":\"03/01/2017\",\n" +
-                "        \"possibleLocations\":[\n" +
-                "            {\n" +
-                "              \"id\":\"7\",\n" +
-                "              \"name\":\"Whole Foods\"\n" +
-                "            }\n" +
-                "          ],\n" +
-                "        \"comments\":{\n" +
-                "          \n" +
-                "        }\n" +
-                "      }\n" +
-                "    ]\n" +
-                "}";
+        String resultsTemp = "";
+        try{
+            resultsTemp = dJson.execute().get();
+        }catch(Exception e){e.printStackTrace();}
 
         JSONObject jObject;
         try{
-            jObject = new JSONObject(currentRecords);
+            JSONArray results = new JSONArray(resultsTemp);
 
-            JSONArray results = jObject.getJSONArray("locations");
-
-            for(int i = 0; i < results.length(); i++){
+            Log.i("LEN",Integer.toString(results.length()));
+            for(int i = 0; i < results.length(); i++) {
                 JSONObject jsonPart = results.getJSONObject(i);
 
                 AllLocation allI = new AllLocation();
-                allI.setDateTime(jsonPart.getString("datetime"));
+
+                allI.dateTime = jsonPart.getString("datetime");
+                allI.longitude = jsonPart.getString("longitude");
+                allI.latitude = jsonPart.getString("latitude");
+                allI.id = jsonPart.getString("id");
 
                 JSONArray possibleLocations = jsonPart.getJSONArray("possibleLocations");
 
                 for(int j = 0; j < possibleLocations.length(); j++){
                     JSONObject indLocation = possibleLocations.getJSONObject(j);
 
-                    IndividualLocation newLocation = new IndividualLocation(indLocation.getString("id"),indLocation.getString("name"));
+
+                    String ID = indLocation.getString("id");
+                    String name = indLocation.getString("name");
+                    IndividualLocation newLocation = new IndividualLocation(ID,name);
+
                     allI.addLocation(newLocation);
 
                     if(possibleLocations.length() == 1){
                         allI.setLocation(indLocation.getString("id"));
                     }
                 }
+
+                JSONArray commentsJSON = jsonPart.getJSONArray("comments");
+                for(int j = 0; j < commentsJSON.length(); j++){
+                    JSONObject indComment = commentsJSON.getJSONObject(j);
+
+                    comment c = new comment(indComment.getString("date"),indComment.getString("user"),indComment.getString("comment"));
+                    allI.addComment(c);
+                }
+
                 listLocation.add(allI);
-                Log.i("Location", "Added");
+                Log.i("I","Location Added");
+
             }
         }catch(Exception e){e.printStackTrace();}
         adapter = new MyAdapter(listLocation,this,getApplicationContext());
@@ -178,7 +143,7 @@ public class locationActivity extends AppCompatActivity implements AdapterView.O
 
                                     String ID = jsonPart.getString("id");
                                     String name = jsonPart.getString("name");
-                                    IndividualLocation x = new IndividualLocation(ID, name);
+                                    IndividualLocation x = new IndividualLocation(ID,name);
 
                                     allI.addLocation(x);
                                 }
@@ -300,6 +265,39 @@ public class locationActivity extends AppCompatActivity implements AdapterView.O
                 return e.toString();
             }
 
+            return result;
+
+        }
+    }
+
+    public class DownloadJSON extends AsyncTask<String, Void, String> {
+
+        @Override
+        protected String doInBackground(String... strings) {
+
+            String finalLink = "https://foursquarenjit.firebaseio.com/locations.json";
+
+            String result = "";
+            URL url;
+            HttpURLConnection urlConnection = null;
+
+
+            try{
+                url = new URL(finalLink);
+                urlConnection = (HttpURLConnection)url.openConnection();
+
+                InputStream in  = urlConnection.getInputStream();
+                InputStreamReader reader = new InputStreamReader(in);
+
+                int data = reader.read();
+                while(data != -1){
+                    result += (char)data;
+                    data = reader.read();
+                }
+            }catch (Exception e){
+                return e.toString();
+            }
+            Log.i("Results",result);
             return result;
 
         }

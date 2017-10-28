@@ -13,6 +13,7 @@ public class IndividualLocation{
         id = i;
         name = n;
     }
+    public IndividualLocation(){}
 
     public String getID(){
         return id;

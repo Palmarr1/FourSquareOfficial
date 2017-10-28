@@ -13,16 +13,18 @@ public class AllLocation{
     public List<IndividualLocation> individual = new ArrayList();
     public boolean locationDetermined;
     public IndividualLocation finalLocation;
+    public String longitude;
+    public String latitude;
+    public List<comment> comments = new ArrayList<comment>();
+    public String id;
 
-    public AllLocation(){
-    }
+
+    public AllLocation(){}
     public void setDateTime(String dT){
         dateTime = dT;
     }
+    public AllLocation(String dT){dateTime = dT;}
 
-    public AllLocation(String dT){
-        dateTime = dT;
-    }
     public boolean getLocationDetermined(){
         return locationDetermined;
     }
@@ -67,4 +69,6 @@ public class AllLocation{
         finalLocation = individual.get(i);
         locationDetermined = true;
     }
+    public void addComment(comment c){comments.add(c);}
+
 }
