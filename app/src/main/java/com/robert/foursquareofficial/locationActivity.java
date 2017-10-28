@@ -2,7 +2,9 @@ package com.robert.foursquareofficial;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -18,6 +20,9 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
+
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -44,10 +49,17 @@ public class locationActivity extends AppCompatActivity implements AdapterView.O
     private List<AllLocation> listLocation;
     private LocationManager locationManager;
     private LocationListener locationListener;
+    public String currentUser;
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.location);
+
+        Bundle b = getIntent().getExtras();
+        currentUser = b.getString("user");
+
+        Log.i("USER",currentUser);
+
 
         recyclerView = (RecyclerView)findViewById(R.id.recyclerView);
         recyclerView.setHasFixedSize(true);
@@ -64,35 +76,51 @@ public class locationActivity extends AppCompatActivity implements AdapterView.O
 
         JSONObject jObject;
         try{
-            JSONArray results = new JSONArray(resultsTemp);
+            jObject = new JSONObject(resultsTemp);
 
-            Log.i("LEN",Integer.toString(results.length()));
-            for(int i = 0; i < results.length(); i++) {
-                JSONObject jsonPart = results.getJSONObject(i);
+            for(int x = 0; x < jObject.length();x++){
+                JSONObject jsonPart = new JSONObject(jObject.getString(jObject.names().get(x).toString()));
 
                 AllLocation allI = new AllLocation();
 
                 allI.dateTime = jsonPart.getString("datetime");
                 allI.longitude = jsonPart.getString("longitude");
                 allI.latitude = jsonPart.getString("latitude");
-                allI.id = jsonPart.getString("id");
+                allI.id = jObject.names().get(x).toString();
 
-                JSONArray possibleLocations = jsonPart.getJSONArray("possibleLocations");
+                if(jsonPart.has("location")){
+                    JSONObject finalLocation = jsonPart.getJSONObject("location");
 
-                for(int j = 0; j < possibleLocations.length(); j++){
-                    JSONObject indLocation = possibleLocations.getJSONObject(j);
-
-
-                    String ID = indLocation.getString("id");
-                    String name = indLocation.getString("name");
+                    String ID = finalLocation.getString("id");
+                    String name = finalLocation.getString("name");
                     IndividualLocation newLocation = new IndividualLocation(ID,name);
 
                     allI.addLocation(newLocation);
 
-                    if(possibleLocations.length() == 1){
-                        allI.setLocation(indLocation.getString("id"));
+                    allI.setLocation(ID);
+
+
+
+                }else{
+                    JSONArray possibleLocations = jsonPart.getJSONArray("possibleLocations");
+
+                    for(int j = 0; j < possibleLocations.length(); j++){
+                        JSONObject indLocation = possibleLocations.getJSONObject(j);
+
+
+                        String ID = indLocation.getString("id");
+                        String name = indLocation.getString("name");
+                        IndividualLocation newLocation = new IndividualLocation(ID,name);
+
+                        allI.addLocation(newLocation);
+
+                        if(possibleLocations.length() == 1){
+                            allI.setLocation(indLocation.getString("id"));
+                        }
                     }
                 }
+
+
 
                 JSONArray commentsJSON = jsonPart.getJSONArray("comments");
                 for(int j = 0; j < commentsJSON.length(); j++){
@@ -212,8 +240,17 @@ public class locationActivity extends AppCompatActivity implements AdapterView.O
             Bundle b = data.getExtras();
             String strEditText = b.getString("ItemSelected");
 
-            if(strEditText.equals("-1")){
-                Log.i("F",strEditText);
+            if(strEditText.equals("-1")) {
+                Log.i("F", strEditText);
+            }
+            else if(strEditText.equals("-2")){
+                FirebaseDatabase database = FirebaseDatabase.getInstance();
+                DatabaseReference myRef = database.getReference("locations");
+
+                myRef.child(listLocation.get(requestCode).id).removeValue();
+                listLocation.remove(requestCode);
+                adapter.notifyDataSetChanged();
+
             }else{
                 adapter.setLocation(requestCode,Integer.parseInt(strEditText));
             }
@@ -275,7 +312,7 @@ public class locationActivity extends AppCompatActivity implements AdapterView.O
         @Override
         protected String doInBackground(String... strings) {
 
-            String finalLink = "https://foursquarenjit.firebaseio.com/locations.json";
+            String finalLink = "https://foursquarenjit.firebaseio.com/locations.json?orderBy=\"user\"&equalTo=\"" + currentUser + "\"";
 
             String result = "";
             URL url;
@@ -301,5 +338,12 @@ public class locationActivity extends AppCompatActivity implements AdapterView.O
             return result;
 
         }
+    }
+    public void addRecord(){
+        SharedPreferences sharedPreferences = this.getSharedPreferences("com.robert.foursquareofficial", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+
+        editor.clear();
+        editor.commit();
     }
 }

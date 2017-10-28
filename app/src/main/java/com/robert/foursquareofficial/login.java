@@ -1,6 +1,8 @@
 package com.robert.foursquareofficial;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -9,6 +11,14 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.facebook.CallbackManager;
+import com.facebook.FacebookCallback;
+import com.facebook.FacebookException;
+import com.facebook.login.LoginResult;
+import com.facebook.login.widget.LoginButton;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import org.json.JSONObject;
 
@@ -21,6 +31,8 @@ public class login extends AppCompatActivity {
 
     public EditText login;
     public EditText pass;
+    private LoginButton loginButton;
+    private CallbackManager callbackManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,6 +41,63 @@ public class login extends AppCompatActivity {
 
         login = (EditText) findViewById(R.id.input_email);
         pass = (EditText) findViewById(R.id.input_password);
+
+
+        callbackManager = CallbackManager.Factory.create();
+        loginButton = (LoginButton)findViewById(R.id.facebook);
+
+        loginButton.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
+            @Override
+            public void onSuccess(LoginResult loginResult) {
+                Log.i("USER",loginResult.getAccessToken().getUserId());
+
+
+                DownloadUser user = new DownloadUser();
+                JSONObject obj;
+
+                try{
+                    String result = user.execute(loginResult.getAccessToken().getUserId()).get();
+                    obj = new JSONObject(result);
+
+                    if(obj.length() == 0){
+                        FirebaseDatabase database = FirebaseDatabase.getInstance();
+                        DatabaseReference myRef = database.getReference("users");
+
+                        myRef.child(loginResult.getAccessToken().getUserId()).child("id").setValue(loginResult.getAccessToken().getUserId());
+
+                        Intent i = new Intent(login.this,locationActivity.class);
+
+                        Bundle b = new Bundle();
+                        b.putString("user",loginResult.getAccessToken().getUserId());
+
+                        i.putExtras(b);
+                        startActivity(i);
+
+                    }else{
+                        SharedPreferences sharedPreferences = getSharedPreferences("com.robert.foursquareofficial", Context.MODE_PRIVATE);
+                        sharedPreferences.edit().putString("user",loginResult.getAccessToken().getUserId());
+
+                        Intent i = new Intent(login.this,locationActivity.class);
+
+                        Bundle b = new Bundle();
+                        b.putString("user",loginResult.getAccessToken().getUserId());
+
+                        i.putExtras(b);
+                        startActivity(i);
+                    }
+                }catch (Exception e){e.printStackTrace();}
+            }
+
+            @Override
+            public void onCancel() {
+                Log.i("USER","Login Attempt Canceled");
+            }
+
+            @Override
+            public void onError(FacebookException error) {
+                Log.i("I",error.getMessage());
+            }
+        });
 
     }
 
@@ -70,16 +139,23 @@ public class login extends AppCompatActivity {
                     return;
                 }
                 else{
-                    Log.i("I","Login Correct");
+
+                    SharedPreferences sharedPreferences = getSharedPreferences("com.robert.foursquareofficial", Context.MODE_PRIVATE);
+                    sharedPreferences.edit().putString("user",login.getText().toString());
+
+                    Intent i = new Intent(login.this,locationActivity.class);
+
+                    Bundle b = new Bundle();
+                    b.putString("user",login.getText().toString());
+
+                    i.putExtras(b);
+                    startActivity(i);
+
                 }
             }
         }catch (Exception e){e.printStackTrace();}
 
-
-
-
     }
-
 
     public class DownloadUser extends AsyncTask<String, Void, String> {
 
@@ -112,5 +188,10 @@ public class login extends AppCompatActivity {
             return result;
 
         }
+    }
+
+    public void onActivityResult(int requestCode, int resultCode, Intent data){
+        super.onActivityResult(requestCode, resultCode, data);
+        callbackManager.onActivityResult(requestCode,resultCode,data);
     }
 }

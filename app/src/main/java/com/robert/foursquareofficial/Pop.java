@@ -88,6 +88,20 @@ public class Pop extends Activity {
         });
         ll.addView(btn2);
 
+        Button btn3 = new Button(this);
+        btn3.setText("Delete Location");
+
+        btn3.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent();
+                intent.putExtra("ItemSelected","-2");
+                setResult(RESULT_OK, intent);
+                finish();
+            }
+        });
+        ll.addView(btn3);
+
 
 
 
