@@ -90,25 +90,31 @@ public class locationActivity extends AppCompatActivity implements AdapterView.O
                         AllLocation allI = new AllLocation();
 
                         if(code.equals("200")){
-                            SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss");
+                            SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy");
                             String currentDateandTime = sdf.format(new Date());
-
-                            allI = new AllLocation(currentDateandTime);
 
                             JSONArray results = jObject.getJSONObject("response").getJSONArray("venues");
                             if(results.length() != 0) {
+                                DatabaseReference myRef = FirebaseDatabase.getInstance().getReference().child("locations").push();
 
+                                myRef.child("longitude").setValue(df.format(location.getLongitude()));
+                                myRef.child("latitude").setValue(df.format(location.getLatitude()));
+                                myRef.child("datetime").setValue(currentDateandTime);
+                                myRef.child("user").setValue(currentUser);
+
+                                Log.i("I",myRef.getKey());
                                 for (int i = 0; i < results.length(); i++) {
+                                    DatabaseReference tempRef = FirebaseDatabase.getInstance().getReference().child("locations").child(myRef.getKey()).child("possibleLocations").push();
+
                                     JSONObject jsonPart = results.getJSONObject(i);
 
-                                    String ID = jsonPart.getString("id");
-                                    String name = jsonPart.getString("name");
-                                    IndividualLocation x = new IndividualLocation(ID,name);
+                                    tempRef.child("id").setValue(jsonPart.getString("id"));
+                                    tempRef.child("name").setValue(jsonPart.getString("name"));
 
-                                    allI.addLocation(x);
+                                    if(i > 5){break;}
                                 }
 
-                                listLocation.add(allI);
+                                int x = setLocations();
                                 adapter.notifyDataSetChanged();
                             }
                         }else{
@@ -182,11 +188,11 @@ public class locationActivity extends AppCompatActivity implements AdapterView.O
                     allI.setLocation(ID);
 
                 }else{
-                    JSONArray possibleLocations = jsonPart.getJSONArray("possibleLocations");
+
+                    JSONObject possibleLocations = new JSONObject(jsonPart.getString("possibleLocations"));
 
                     for(int j = 0; j < possibleLocations.length(); j++){
-                        JSONObject indLocation = possibleLocations.getJSONObject(j);
-
+                        JSONObject indLocation = new JSONObject(possibleLocations.getString(possibleLocations.names().get(j).toString()));
                         String ID = indLocation.getString("id");
                         String name = indLocation.getString("name");
                         IndividualLocation newLocation = new IndividualLocation(ID,name);
@@ -198,19 +204,23 @@ public class locationActivity extends AppCompatActivity implements AdapterView.O
                         }
                     }
                 }
+                if(jsonPart.has("comments")){
+                    JSONArray jsonArray = jsonPart.getJSONArray("comments");
 
-                JSONArray commentsJSON = jsonPart.getJSONArray("comments");
-                for(int j = 0; j < commentsJSON.length(); j++){
-                    JSONObject indComment = commentsJSON.getJSONObject(j);
-
-                    comment c = new comment(indComment.getString("date"),indComment.getString("user"),indComment.getString("comment"));
-                    allI.addComment(c);
+                    for(int i = 0; i < jsonArray.length(); i++){
+                        JSONObject indComment = jsonArray.getJSONObject(i);
+                        comment c = new comment(indComment.getString("date"),indComment.getString("user"),indComment.getString("comment"));
+                        c.id = indComment.names().get(0).toString();
+                        allI.addComment(c);
+                    }
                 }
 
                 listLocation.add(allI);
                 Log.i("I","Location Added");
 
             }
+
+            adapter.locationList = listLocation;
         }catch(Exception e){e.printStackTrace();}
 
         return 0;
@@ -230,7 +240,8 @@ public class locationActivity extends AppCompatActivity implements AdapterView.O
             startActivityForResult(i,position);
 
         }else{
-            Log.i("I", Integer.toString(position));
+            Intent i = new Intent(this,options.class);
+            startActivity(i);
         }
     }
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -269,6 +280,7 @@ public class locationActivity extends AppCompatActivity implements AdapterView.O
                 myRef2.child(listLocation.get(requestCode).id).child("location").child("name").setValue(i.getName());
 
                 int x = setLocations();
+
                 adapter.notifyDataSetChanged();
             }
         }
@@ -285,7 +297,7 @@ public class locationActivity extends AppCompatActivity implements AdapterView.O
     }
     public void configureButton(){
         Log.i("Cong","HERE");
-        locationManager.requestLocationUpdates("gps", 60000, 30, locationListener);
+        locationManager.requestLocationUpdates("gps", 60000, 300, locationListener);
     }
 
     public class DownloadTask extends AsyncTask<String, Void, String> {
