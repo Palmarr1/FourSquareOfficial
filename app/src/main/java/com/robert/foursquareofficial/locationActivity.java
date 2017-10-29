@@ -59,7 +59,7 @@ public class locationActivity extends AppCompatActivity implements AdapterView.O
         Bundle b = getIntent().getExtras();
         currentUser = b.getString("user");
 
-        Log.i("USER",currentUser);
+        //Log.i("USER",currentUser);
 
         recyclerView = (RecyclerView)findViewById(R.id.recyclerView);
         recyclerView.setHasFixedSize(true);
@@ -81,7 +81,7 @@ public class locationActivity extends AppCompatActivity implements AdapterView.O
 
                 try{
                     apiOutput = task.execute(df.format(location.getLongitude()),df.format(location.getLatitude())).get();
-                    Log.i("OUTPUT",apiOutput);
+                    //Log.i("OUTPUT",apiOutput);
 
                     JSONObject jObject;
                     try{
@@ -102,7 +102,7 @@ public class locationActivity extends AppCompatActivity implements AdapterView.O
                                 myRef.child("datetime").setValue(currentDateandTime);
                                 myRef.child("user").setValue(currentUser);
 
-                                Log.i("I",myRef.getKey());
+                                //Log.i("I",myRef.getKey());
                                 for (int i = 0; i < results.length(); i++) {
                                     DatabaseReference tempRef = FirebaseDatabase.getInstance().getReference().child("locations").child(myRef.getKey()).child("possibleLocations").push();
 
@@ -115,10 +115,11 @@ public class locationActivity extends AppCompatActivity implements AdapterView.O
                                 }
 
                                 int x = setLocations();
+                                adapter.locationList = listLocation;
                                 adapter.notifyDataSetChanged();
                             }
                         }else{
-                            Log.i("I", "NO INFORMATION");
+                            //Log.i("I", "NO INFORMATION");
                         }
                     }catch(Exception e){ Log.i("ERROR", e.toString());}
                 }catch(Exception e){e.printStackTrace();}
@@ -154,7 +155,7 @@ public class locationActivity extends AppCompatActivity implements AdapterView.O
     }
 
     public int setLocations(){
-        Log.i("I","CONFIGHERE");
+        //Log.i("I","CONFIGHERE");
         listLocation = new ArrayList<AllLocation>();
         DownloadJSON dJson = new DownloadJSON();
 
@@ -216,11 +217,10 @@ public class locationActivity extends AppCompatActivity implements AdapterView.O
                 }
 
                 listLocation.add(allI);
-                Log.i("I","Location Added");
+                //Log.i("I","Location Added");
 
             }
 
-            adapter.locationList = listLocation;
         }catch(Exception e){e.printStackTrace();}
 
         return 0;
@@ -246,8 +246,8 @@ public class locationActivity extends AppCompatActivity implements AdapterView.O
     }
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        Log.i("Req",Integer.toString(requestCode));
-        Log.i("Res",Integer.toString(resultCode));
+        //Log.i("Req",Integer.toString(requestCode));
+        //Log.i("Res",Integer.toString(resultCode));
         if(resultCode == RESULT_OK) {
             Bundle b = data.getExtras();
             String strEditText = b.getString("ItemSelected");
@@ -265,7 +265,7 @@ public class locationActivity extends AppCompatActivity implements AdapterView.O
                 adapter.notifyDataSetChanged();
 
             }else{
-                Log.i("I","REACHING");
+                //Log.i("I","REACHING");
                 DatabaseReference myRef2 = FirebaseDatabase.getInstance().getReference().child("locations");
 
                 IndividualLocation i= listLocation.get(requestCode).individual.get(Integer.parseInt(strEditText));
@@ -280,6 +280,7 @@ public class locationActivity extends AppCompatActivity implements AdapterView.O
                 myRef2.child(listLocation.get(requestCode).id).child("location").child("name").setValue(i.getName());
 
                 int x = setLocations();
+                adapter.locationList = listLocation;
 
                 adapter.notifyDataSetChanged();
             }
@@ -296,7 +297,7 @@ public class locationActivity extends AppCompatActivity implements AdapterView.O
         }
     }
     public void configureButton(){
-        Log.i("Cong","HERE");
+        //Log.i("Cong","HERE");
         locationManager.requestLocationUpdates("gps", 60000, 300, locationListener);
     }
 
@@ -309,7 +310,7 @@ public class locationActivity extends AppCompatActivity implements AdapterView.O
             String clientSecret = "1XTMV3OOY5ZDV3ADVNRHVNXNXZG4FUWO0UB3HFRU0HY4H54R";
 
             String finalLink = "https://api.foursquare.com/v2/venues/search?v=20131016&ll=" + strings[1] + "%2C" + strings[0] + "&intent=checkin&client_id=" + clientID + "&client_secret=" + clientSecret;
-            Log.i("Link",finalLink);
+            //Log.i("Link",finalLink);
             String result = "";
             URL url;
             HttpURLConnection urlConnection = null;
@@ -363,7 +364,7 @@ public class locationActivity extends AppCompatActivity implements AdapterView.O
             }catch (Exception e){
                 return e.toString();
             }
-            Log.i("Results",result);
+            //Log.i("Results",result);
             return result;
 
         }

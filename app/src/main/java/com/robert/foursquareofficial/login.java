@@ -109,7 +109,7 @@ public class login extends AppCompatActivity {
 
     public void Login(View v){
 
-        Log.i("I","Test");
+        //Log.i("I","Test");
 
         if(login.getText().toString().equals("")){
             Toast.makeText(getApplicationContext(),"Enter UserName",Toast.LENGTH_SHORT).show();
@@ -132,7 +132,7 @@ public class login extends AppCompatActivity {
             }else{
                 JSONObject obj2 = new JSONObject(obj.getString(obj.names().get(0).toString()));
 
-                Log.i("I",obj2.toString());
+                //Log.i("I",obj2.toString());
 
                 if(!obj2.getString("password").equals(pass.getText().toString())){
                     Toast.makeText(getApplicationContext(),"Incorrect Password",Toast.LENGTH_SHORT).show();
@@ -185,7 +185,7 @@ public class login extends AppCompatActivity {
             }catch (Exception e){
                 return e.toString();
             }
-            Log.i("Results",result);
+            //Log.i("Results",result);
             return result;
 
         }
