@@ -205,19 +205,14 @@ public class locationActivity extends AppCompatActivity implements AdapterView.O
                         }
                     }
                 }
-                if(jsonPart.has("comments")){
-                    JSONArray jsonArray = jsonPart.getJSONArray("comments");
-
-                    for(int i = 0; i < jsonArray.length(); i++){
-                        JSONObject indComment = jsonArray.getJSONObject(i);
-                        comment c = new comment(indComment.getString("date"),indComment.getString("user"),indComment.getString("comment"));
-                        c.id = indComment.names().get(0).toString();
-                        allI.addComment(c);
-                    }
+                if(jsonPart.has("comment")){
+                    allI.comment = jsonPart.getString("comment");
+                }
+                if(jsonPart.has("rating")){
+                    allI.rating = Integer.parseInt(jsonPart.getString("rating"));
                 }
 
                 listLocation.add(allI);
-                //Log.i("I","Location Added");
 
             }
 
@@ -240,8 +235,31 @@ public class locationActivity extends AppCompatActivity implements AdapterView.O
             startActivityForResult(i,position);
 
         }else{
+            Bundle b = new Bundle();
+
+            b.putString("ID",item.id);
+
+            if(item.comment.equals("")){
+                b.putString("comment","");
+            }else{
+                b.putString("comment",item.comment);
+            }
+
+            if(item.rating == -1){
+                b.putString("rating","");
+            }else {
+                b.putInt("rating", item.rating);
+            }
+
+            Log.i("ID",item.id);
+            Log.i("Rating",Integer.toString(item.rating));
+            Log.i("Comment",item.comment);
+
             Intent i = new Intent(this,options.class);
+            i.putExtras(b);
             startActivity(i);
+            setLocations();
+            adapter.notifyDataSetChanged();
         }
     }
     public void onActivityResult(int requestCode, int resultCode, Intent data) {

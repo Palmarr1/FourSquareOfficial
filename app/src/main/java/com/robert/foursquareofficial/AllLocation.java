@@ -15,8 +15,9 @@ public class AllLocation{
     public IndividualLocation finalLocation;
     public String longitude;
     public String latitude;
-    public List<comment> comments = new ArrayList<comment>();
     public String id;
+    public String comment = "";
+    public int rating = -1;
 
 
     public AllLocation(){}
@@ -69,6 +70,6 @@ public class AllLocation{
         finalLocation = individual.get(i);
         locationDetermined = true;
     }
-    public void addComment(comment c){comments.add(c);}
+
 
 }

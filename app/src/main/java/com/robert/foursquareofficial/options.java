@@ -38,6 +38,12 @@ public class options extends AppCompatActivity {
     }
 
     public void addComment(View v){
+        Intent i = new Intent(options.this,comment_rating.class);
+        Bundle b = getIntent().getExtras();
+        i.putExtras(b);
+
+        startActivity(i);
+        finish();
 
     }
 }
