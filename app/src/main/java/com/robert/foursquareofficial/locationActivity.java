@@ -251,6 +251,8 @@ public class locationActivity extends AppCompatActivity implements AdapterView.O
                 b.putInt("rating", item.rating);
             }
 
+            b.putString("LocationID",item.finalLocation.getID());
+
             Log.i("ID",item.id);
             Log.i("Rating",Integer.toString(item.rating));
             Log.i("Comment",item.comment);

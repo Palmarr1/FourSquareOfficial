@@ -49,6 +49,10 @@
         </activity>
         <activity android:name=".options" />
         <activity android:name=".comment_rating"></activity>
+
+        <provider android:authorities="com.facebook.app.FacebookContentProvider618114188363722"
+            android:name="com.facebook.FacebookContentProvider"
+            android:exported="true"/>
     </application>
 
 </manifest>
