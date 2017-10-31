@@ -18,6 +18,7 @@ public class AllLocation{
     public String id;
     public String comment = "";
     public int rating = -1;
+    public boolean booleanSearch = false;
 
 
     public AllLocation(){}

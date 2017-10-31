@@ -20,6 +20,7 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.EditText;
 
 import com.facebook.all.All;
 import com.google.firebase.database.DatabaseReference;
@@ -114,7 +115,7 @@ public class locationActivity extends AppCompatActivity implements AdapterView.O
                                     if(i > 5){break;}
                                 }
 
-                                int x = setLocations();
+                                setLocations();
                                 adapter.locationList = listLocation;
                                 adapter.notifyDataSetChanged();
                             }
@@ -261,6 +262,7 @@ public class locationActivity extends AppCompatActivity implements AdapterView.O
             i.putExtras(b);
             startActivity(i);
             setLocations();
+            adapter.locationList = listLocation;
             adapter.notifyDataSetChanged();
         }
     }
@@ -299,7 +301,7 @@ public class locationActivity extends AppCompatActivity implements AdapterView.O
                 //Setting Name
                 myRef2.child(listLocation.get(requestCode).id).child("location").child("name").setValue(i.getName());
 
-                int x = setLocations();
+                setLocations();
                 adapter.locationList = listLocation;
 
                 adapter.notifyDataSetChanged();
@@ -395,5 +397,26 @@ public class locationActivity extends AppCompatActivity implements AdapterView.O
 
         editor.clear();
         editor.commit();
+    }
+
+    public void search(View v){
+
+        EditText editText = (EditText)findViewById(R.id.searchCriteria);
+
+        String searchCriteria = editText.getText().toString();
+        ArrayList<Integer> aList = new ArrayList<>();
+        if(!searchCriteria.equals("")){
+            for(int x = 0; x < listLocation.size(); x++){
+                AllLocation i = listLocation.get(x);
+
+                if(i.getLocationDetermined()){
+                    if(i.comment.toLowerCase().contains(searchCriteria.toLowerCase()) || i.getLocation().toLowerCase().contains(searchCriteria.toLowerCase())){
+                        aList.add(x);
+                    }
+                }
+            }
+        }
+        adapter.addColor(aList);
+        return;
     }
 }

@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.TextView;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -44,7 +45,11 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder>{
         if(individualLocation.getLocationDetermined() == false){
             holder.mCardView.setCardBackgroundColor(Color.RED);
         }else{
-            holder.mCardView.setCardBackgroundColor(Color.WHITE);
+            if(individualLocation.booleanSearch == true){
+                holder.mCardView.setCardBackgroundColor(Color.BLUE);
+            }else{
+                holder.mCardView.setCardBackgroundColor(Color.WHITE);
+            }
         }
     }
 
@@ -69,7 +74,6 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder>{
         public void onClick(View view) {
             //passing the clicked position to the parent class
             onItemClickListener.onItemClick(null, view, getAdapterPosition(), view.getId());
-
         }
     }
     public AllLocation getItem(int position) {
@@ -79,6 +83,20 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder>{
         locationList.remove(position);
         notifyItemRemoved(position);
         notifyItemRangeChanged(position, locationList.size());
+    }
+    public void resetColors(){
+        for(AllLocation i : locationList){
+            i.booleanSearch = false;
+        }
+    }
+
+    public void addColor(ArrayList<Integer> aList){
+        resetColors();
+        for(Integer i : aList){
+            locationList.get(i).booleanSearch = true;
+        }
+
+        notifyDataSetChanged();
     }
 
     public int getItemCount() {
