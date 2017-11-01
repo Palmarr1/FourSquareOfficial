@@ -15,7 +15,6 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
         SharedPreferences sharedPreferences = this.getSharedPreferences("com.robert.foursquareofficial", Context.MODE_PRIVATE);
 
         if(sharedPreferences.contains("user")){

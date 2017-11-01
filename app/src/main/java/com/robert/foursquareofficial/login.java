@@ -151,6 +151,7 @@ public class login extends AppCompatActivity {
 
                     i.putExtras(b);
                     startActivity(i);
+                    finish();
 
                 }
             }

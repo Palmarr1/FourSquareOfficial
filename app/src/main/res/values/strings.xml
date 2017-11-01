@@ -2,4 +2,7 @@
     <string name="app_name">FourSquareOfficial</string>
     <string name="facebook_app_id">618114188363722</string>
     <string name="fb_login_protocol_scheme">fb618114188363722</string>
+    <string name="google_maps_key" templateMergeStrategy="preserve" translatable="false">
+            AIzaSyCS4-9NXwVqxjiAt5bDTNaw9nJI_J-vjAE
+    </string>
 </resources>

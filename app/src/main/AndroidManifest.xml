@@ -48,11 +48,20 @@
             </intent-filter>
         </activity>
         <activity android:name=".options" />
-        <activity android:name=".comment_rating"></activity>
+        <activity android:name=".comment_rating" />
 
-        <provider android:authorities="com.facebook.app.FacebookContentProvider618114188363722"
+        <provider
             android:name="com.facebook.FacebookContentProvider"
-            android:exported="true"/>
+            android:authorities="com.facebook.app.FacebookContentProvider618114188363722"
+            android:exported="true" />
+
+        <activity android:name=".Map"></activity>
+        <meta-data
+            android:name="com.google.android.gms.version"/>
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="@string/google_maps_key"/>
+
     </application>
 
 </manifest>

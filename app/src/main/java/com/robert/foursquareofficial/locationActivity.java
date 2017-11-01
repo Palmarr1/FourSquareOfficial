@@ -31,6 +31,7 @@ import org.json.JSONObject;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.Array;
 import java.net.HttpURLConnection;
 import java.net.Inet4Address;
 import java.net.URL;
@@ -53,6 +54,7 @@ public class locationActivity extends AppCompatActivity implements AdapterView.O
     private LocationListener locationListener;
     public String currentUser;
 
+
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.location);
@@ -60,7 +62,7 @@ public class locationActivity extends AppCompatActivity implements AdapterView.O
         Bundle b = getIntent().getExtras();
         currentUser = b.getString("user");
 
-        //Log.i("USER",currentUser);
+        Log.i("USER",currentUser);
 
         recyclerView = (RecyclerView)findViewById(R.id.recyclerView);
         recyclerView.setHasFixedSize(true);
@@ -75,10 +77,12 @@ public class locationActivity extends AppCompatActivity implements AdapterView.O
         locationListener = new LocationListener() {
             @Override
             public void onLocationChanged(android.location.Location location) {
+
+
+
                 DecimalFormat df = new DecimalFormat("#.##");
                 DownloadTask task = new DownloadTask();
                 String apiOutput = "";
-
 
                 try{
                     apiOutput = task.execute(df.format(location.getLongitude()),df.format(location.getLatitude())).get();
@@ -216,7 +220,10 @@ public class locationActivity extends AppCompatActivity implements AdapterView.O
                 listLocation.add(allI);
 
             }
-
+        if(adapter != null){
+            adapter.locationList = listLocation;
+            adapter.notifyDataSetChanged();
+        }
         }catch(Exception e){e.printStackTrace();}
 
         return 0;
@@ -260,17 +267,20 @@ public class locationActivity extends AppCompatActivity implements AdapterView.O
 
             Intent i = new Intent(this,options.class);
             i.putExtras(b);
-            startActivity(i);
-            setLocations();
-            adapter.locationList = listLocation;
-            adapter.notifyDataSetChanged();
+            startActivityForResult(i,-1);
+
         }
     }
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        //Log.i("Req",Integer.toString(requestCode));
-        //Log.i("Res",Integer.toString(resultCode));
+        Log.i("Req",Integer.toString(requestCode));
+        Log.i("Res",Integer.toString(resultCode));
         if(resultCode == RESULT_OK) {
+            if(requestCode == -1){
+                Log.i("D","HERE");
+                setLocations();
+                return;
+            }
             Bundle b = data.getExtras();
             String strEditText = b.getString("ItemSelected");
 
@@ -286,11 +296,11 @@ public class locationActivity extends AppCompatActivity implements AdapterView.O
                 listLocation.remove(requestCode);
                 adapter.notifyDataSetChanged();
 
-            }else{
+            }else {
                 //Log.i("I","REACHING");
                 DatabaseReference myRef2 = FirebaseDatabase.getInstance().getReference().child("locations");
 
-                IndividualLocation i= listLocation.get(requestCode).individual.get(Integer.parseInt(strEditText));
+                IndividualLocation i = listLocation.get(requestCode).individual.get(Integer.parseInt(strEditText));
 
                 //Remove other possible value
                 myRef2.child(listLocation.get(requestCode).id).child("possibleLocations").removeValue();
@@ -320,7 +330,7 @@ public class locationActivity extends AppCompatActivity implements AdapterView.O
     }
     public void configureButton(){
         //Log.i("Cong","HERE");
-        locationManager.requestLocationUpdates("gps", 60000, 300, locationListener);
+        locationManager.requestLocationUpdates("gps", 3600000, 300, locationListener);
     }
 
     public class DownloadTask extends AsyncTask<String, Void, String> {
@@ -418,5 +428,31 @@ public class locationActivity extends AppCompatActivity implements AdapterView.O
         }
         adapter.addColor(aList);
         return;
+    }
+    public void seeMap(View v){
+        Intent i = new Intent(locationActivity.this, Map.class);
+        Bundle b = new Bundle();
+
+        ArrayList<String> aList = new ArrayList<>();
+
+        for(AllLocation a : listLocation){
+
+            if(a.locationDetermined){
+                String temp;
+                temp = a.longitude + " : " + a.latitude + " : " + a.getLocation();
+
+                aList.add(temp);
+                //infobox
+            }
+
+        }
+
+
+        b.putStringArrayList("list",aList);
+        i.putExtras(b);
+
+        startActivity(i);
+
+
     }
 }

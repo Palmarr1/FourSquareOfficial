@@ -58,8 +58,12 @@ public class options extends AppCompatActivity {
     }
 
     public void shareMessage(View v){
+
+        Bundle b = getIntent().getExtras();
+        String shareLink = "https://foursquare.com/v/" + b.getString("LocationID");
+
         Intent message = new Intent( Intent.ACTION_VIEW, Uri.parse( "sms:" + "" ) );
-        message.putExtra("sms_body", "I was at NJIT on 10/15/2017" );
+        message.putExtra("sms_body", shareLink );
         startActivity(message);
     }
 
@@ -73,6 +77,7 @@ public class options extends AppCompatActivity {
     }
 
     public void exit(View v){
+        setResult(RESULT_OK);
         finish();
     }
 }
