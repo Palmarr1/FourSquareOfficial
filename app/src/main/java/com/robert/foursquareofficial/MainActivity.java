@@ -25,9 +25,11 @@ public class MainActivity extends Activity {
 
             i.putExtras(b);
             startActivity(i);
+            finish();
         }else{
             Intent i = new Intent(MainActivity.this,login.class);
             startActivity(i);
+            finish();
         }
     }
 }

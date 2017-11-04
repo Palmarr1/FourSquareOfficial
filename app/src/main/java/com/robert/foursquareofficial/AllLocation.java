@@ -1,13 +1,17 @@
 package com.robert.foursquareofficial;
 
+import android.support.annotation.NonNull;
+
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
  * Created by Robert on 10/23/2017.
  */
 
-public class AllLocation{
+public class AllLocation implements Comparable<AllLocation>{
 
     public String dateTime;
     public List<IndividualLocation> individual = new ArrayList();
@@ -19,6 +23,7 @@ public class AllLocation{
     public String comment = "";
     public int rating = -1;
     public boolean booleanSearch = false;
+    public SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy");
 
 
     public AllLocation(){}
@@ -73,4 +78,16 @@ public class AllLocation{
     }
 
 
+    @Override
+    public int compareTo(@NonNull AllLocation o) {
+        try {
+            Date date1 = dateFormat.parse(o.dateTime);
+            Date date2 = dateFormat.parse(this.dateTime);
+
+            return date1.compareTo(date2);
+        }catch(Exception e){e.printStackTrace();}
+
+        return 0;
+
+    }
 }

@@ -37,24 +37,25 @@ public class options extends AppCompatActivity {
     public void shareFacebook(View v){
 
         Log.i("I","HERE");
-        AccessToken accessToken = AccessToken.getCurrentAccessToken();
 
-        Log.i("ACCESS",accessToken.toString());
+        try{
+            AccessToken accessToken = AccessToken.getCurrentAccessToken();
+            if(accessToken == null){
+                Toast.makeText(getApplicationContext(), "User Account is not Linked to Facebook", Toast.LENGTH_SHORT).show();
+            }else{
+                Bundle b = getIntent().getExtras();
+                String shareLink = "https://foursquare.com/v/" + b.getString("LocationID");
+                Log.i("SHARE LINK",shareLink);
 
-        if(accessToken == null){
-            Toast.makeText(getApplicationContext(), "User Account is not Linked to Facebook", Toast.LENGTH_SHORT).show();
-        }else{
-            Bundle b = getIntent().getExtras();
-            String shareLink = "https://foursquare.com/v/" + b.getString("LocationID");
-            Log.i("SHARE LINK",shareLink);
+                ShareDialog shareDialog = new ShareDialog(this);
+                ShareLinkContent content = new ShareLinkContent.Builder()
+                        .setContentUrl(Uri.parse(shareLink))
+                        .build();
 
-            ShareDialog shareDialog = new ShareDialog(this);
-            ShareLinkContent content = new ShareLinkContent.Builder()
-                    .setContentUrl(Uri.parse(shareLink))
-                    .build();
+                shareDialog.show(content);
+            }
+        }catch(Exception e){e.printStackTrace();}
 
-            shareDialog.show(content);
-        }
     }
 
     public void shareMessage(View v){
@@ -73,11 +74,11 @@ public class options extends AppCompatActivity {
         i.putExtras(b);
 
         startActivity(i);
-        finish();
     }
 
     public void exit(View v){
-        setResult(RESULT_OK);
+        Intent intent = new Intent();
+        setResult(RESULT_OK,intent);
         finish();
     }
 }

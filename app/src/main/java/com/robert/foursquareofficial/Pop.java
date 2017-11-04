@@ -107,6 +107,8 @@ public class Pop extends Activity {
 
     }
     public void stopActivity(View v){
+        Intent intent = new Intent();
+        setResult(RESULT_OK, intent);
         finish();
     }
 }

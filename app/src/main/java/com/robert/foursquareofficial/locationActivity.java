@@ -38,6 +38,7 @@ import java.net.URL;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -220,6 +221,7 @@ public class locationActivity extends AppCompatActivity implements AdapterView.O
                 listLocation.add(allI);
 
             }
+            Collections.sort(listLocation);
         if(adapter != null){
             adapter.locationList = listLocation;
             adapter.notifyDataSetChanged();
@@ -267,18 +269,21 @@ public class locationActivity extends AppCompatActivity implements AdapterView.O
 
             Intent i = new Intent(this,options.class);
             i.putExtras(b);
-            startActivityForResult(i,-1);
+            startActivityForResult(i,500);
 
         }
     }
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        Log.i("HERE","HERE");
         Log.i("Req",Integer.toString(requestCode));
         Log.i("Res",Integer.toString(resultCode));
         if(resultCode == RESULT_OK) {
-            if(requestCode == -1){
+            if(requestCode == 500){
                 Log.i("D","HERE");
                 setLocations();
+
                 return;
             }
             Bundle b = data.getExtras();
@@ -312,9 +317,6 @@ public class locationActivity extends AppCompatActivity implements AdapterView.O
                 myRef2.child(listLocation.get(requestCode).id).child("location").child("name").setValue(i.getName());
 
                 setLocations();
-                adapter.locationList = listLocation;
-
-                adapter.notifyDataSetChanged();
             }
         }
     }
@@ -330,7 +332,7 @@ public class locationActivity extends AppCompatActivity implements AdapterView.O
     }
     public void configureButton(){
         //Log.i("Cong","HERE");
-        locationManager.requestLocationUpdates("gps", 3600000, 300, locationListener);
+        locationManager.requestLocationUpdates("gps", 60000, 300, locationListener);
     }
 
     public class DownloadTask extends AsyncTask<String, Void, String> {
@@ -446,7 +448,6 @@ public class locationActivity extends AppCompatActivity implements AdapterView.O
             }
 
         }
-
 
         b.putStringArrayList("list",aList);
         i.putExtras(b);
