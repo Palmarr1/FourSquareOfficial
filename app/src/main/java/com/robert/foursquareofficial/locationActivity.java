@@ -121,8 +121,6 @@ public class locationActivity extends AppCompatActivity implements AdapterView.O
                                 }
 
                                 setLocations();
-                                adapter.locationList = listLocation;
-                                adapter.notifyDataSetChanged();
                             }
                         }else{
                             //Log.i("I", "NO INFORMATION");
@@ -162,6 +160,13 @@ public class locationActivity extends AppCompatActivity implements AdapterView.O
 
     public int setLocations(){
         //Log.i("I","CONFIGHERE");
+
+        int count = 0;
+
+        Log.i("I","BEGIN");
+        while(count < 100000){count++;}
+        Log.i("I","END");
+
         listLocation = new ArrayList<AllLocation>();
         DownloadJSON dJson = new DownloadJSON();
 
@@ -222,6 +227,8 @@ public class locationActivity extends AppCompatActivity implements AdapterView.O
 
             }
             Collections.sort(listLocation);
+
+            Log.i("SIZE",Integer.toString(listLocation.size()));
         if(adapter != null){
             adapter.locationList = listLocation;
             adapter.notifyDataSetChanged();
@@ -316,7 +323,11 @@ public class locationActivity extends AppCompatActivity implements AdapterView.O
                 //Setting Name
                 myRef2.child(listLocation.get(requestCode).id).child("location").child("name").setValue(i.getName());
 
+                adapter.setLocation(requestCode,Integer.parseInt(strEditText));
+
                 setLocations();
+
+                return;
             }
         }
     }
@@ -332,7 +343,7 @@ public class locationActivity extends AppCompatActivity implements AdapterView.O
     }
     public void configureButton(){
         //Log.i("Cong","HERE");
-        locationManager.requestLocationUpdates("gps", 60000, 300, locationListener);
+        locationManager.requestLocationUpdates("gps", 300000, 300, locationListener);
     }
 
     public class DownloadTask extends AsyncTask<String, Void, String> {
@@ -448,7 +459,6 @@ public class locationActivity extends AppCompatActivity implements AdapterView.O
             }
 
         }
-
         b.putStringArrayList("list",aList);
         i.putExtras(b);
 

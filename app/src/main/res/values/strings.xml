@@ -5,4 +5,8 @@
     <string name="google_maps_key" templateMergeStrategy="preserve" translatable="false">
             AIzaSyCS4-9NXwVqxjiAt5bDTNaw9nJI_J-vjAE
     </string>
+    <string name="instClientID">85c3f5d7c75b4129b4d7e2ed5a65f724</string>
+    <string name="instClientSecret">ce1135d7758e44fda143c4ae02ffe211</string>
+    <string name="instReDirect">https://web.njit.edu/~rlp25/</string>
+    <string name="title_activity_pictures">Pictures</string>
 </resources>

@@ -102,6 +102,7 @@ public class signup extends AppCompatActivity {
 
                 i.putExtras(b);
                 startActivity(i);
+                finish();
 
             }else{
                 Toast.makeText(getApplicationContext(),"User Already Exists Please Login",Toast.LENGTH_SHORT).show();

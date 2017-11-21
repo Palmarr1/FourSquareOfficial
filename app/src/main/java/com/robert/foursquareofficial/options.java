@@ -81,4 +81,17 @@ public class options extends AppCompatActivity {
         setResult(RESULT_OK,intent);
         finish();
     }
+
+    public void pictures(View v){
+        Bundle b = getIntent().getExtras();
+        String id = b.getString("LocationID");
+        Log.i("I",id);
+        Bundle give = new Bundle();
+        give.putString("id",id);
+
+        Intent i = new Intent(this,pictures.class);
+        i.putExtras(give);
+        startActivity(i);
+
+    }
 }
