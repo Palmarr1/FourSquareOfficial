@@ -14,6 +14,8 @@ import com.facebook.AccessToken;
 import com.facebook.share.Share;
 import com.facebook.share.model.ShareLinkContent;
 import com.facebook.share.widget.ShareDialog;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 public class options extends AppCompatActivity {
 
@@ -93,5 +95,15 @@ public class options extends AppCompatActivity {
         i.putExtras(give);
         startActivity(i);
 
+    }
+
+    public void Delete(View v){
+        Bundle b = getIntent().getExtras();
+        String ID = b.getString("ID");
+        Log.i("I",ID);
+        DatabaseReference myRef = FirebaseDatabase.getInstance().getReference().child("locations").child(ID);
+        myRef.removeValue();
+
+        finish();
     }
 }

@@ -1,10 +1,13 @@
 package com.robert.foursquareofficial;
 
 import android.content.pm.PackageManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
+import android.util.Log;
 import android.view.View;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -18,16 +21,29 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.GoogleMapOptions;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 public class Map extends FragmentActivity implements OnMapReadyCallback {
 
     private GoogleMap mainMap;
     public ArrayList<String> aList;
+    public Spinner spinner;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,6 +56,9 @@ public class Map extends FragmentActivity implements OnMapReadyCallback {
         Bundle b = getIntent().getExtras();
 
         aList = b.getStringArrayList("list");
+
+        spinner = (Spinner)findViewById(R.id.KeyWord);
+
 
     }
 
@@ -96,7 +115,6 @@ public class Map extends FragmentActivity implements OnMapReadyCallback {
         map.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
             @Override
             public boolean onMarkerClick(Marker marker) {
-                Toast.makeText(getApplicationContext(), "NJIT", Toast.LENGTH_SHORT).show();
                 if (marker.equals(stock)) {
                     Toast.makeText(getApplicationContext(), "40.7423, 74.1793", Toast.LENGTH_SHORT).show();
                 }
@@ -134,6 +152,154 @@ public class Map extends FragmentActivity implements OnMapReadyCallback {
             }
         } catch(Exception e){
 
+        }
+    }
+    public void highlight(View v){
+    }
+    public void getFriends(View v){
+        Log.i("TEST!!!","HERE");
+        DownloadJSON dJson = new DownloadJSON();
+
+        String resultsTemp = "";
+        try{
+            resultsTemp = dJson.execute().get();
+        }catch(Exception e){e.printStackTrace();}
+    }
+    public class DownloadJSON extends AsyncTask<String, Void, String> {
+
+        @Override
+        protected String doInBackground(String... strings) {
+
+            String finalLink = "https://foursquarenjit.firebaseio.com/locations.json";
+
+            String result = "";
+            URL url;
+            HttpURLConnection urlConnection = null;
+
+
+            try {
+                url = new URL(finalLink);
+                urlConnection = (HttpURLConnection) url.openConnection();
+
+                InputStream in = urlConnection.getInputStream();
+                InputStreamReader reader = new InputStreamReader(in);
+
+                int data = reader.read();
+                while (data != -1) {
+                    result += (char) data;
+                    data = reader.read();
+                }
+            } catch (Exception e) {
+                return e.toString();
+            }
+            //Log.i("Results",result);
+            Log.i("TEST!!!","HERE");
+            return result;
+
+
+        }
+
+        @Override
+        protected void onPostExecute(String result){
+            Log.i("TEST!!!","HERE");
+            Log.d("readPlaces", "onPostExecute Entered");
+            List<HashMap<String, String>> friendPlacesList = null;
+            DataParser dataParser = new DataParser();
+            friendPlacesList =  dataParser.parse(result);
+            ShowFriendPlaces(friendPlacesList);
+        }
+
+        private void ShowFriendPlaces(List<HashMap<String, String>> friendPlacesList){
+            Log.i("TEST!!!","HERE");
+            for(int i = 0; i < friendPlacesList.size(); i++){
+                Log.d("onPostExecute","Entered into showing locations");
+                MarkerOptions markerOptions = new MarkerOptions();
+                HashMap<String, String> googlePlace = friendPlacesList.get(i);
+                double lat = Double.parseDouble(googlePlace.get("lat"));
+                double lng = Double.parseDouble(googlePlace.get("lng"));
+
+                String name = googlePlace.get("place_name");
+                String comment = googlePlace.get("comment");
+                String user = googlePlace.get("user");
+
+                LatLng latLng = new LatLng(lat, lng);
+                markerOptions.position(latLng);
+                markerOptions.title(user + "(" + comment +")\n" + name);
+                markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
+                mainMap.addMarker(markerOptions);
+            }
+        }
+    }
+
+    class DataParser {
+        public List<HashMap<String, String>> parse(String jsonData) {
+            JSONArray jsonArray = null;
+            JSONObject jsonObject = null;
+
+            try {
+                Log.d("Places", "parse");
+                jsonObject = new JSONObject((String) jsonData);
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            return getPlaces(jsonObject);
+        }
+
+        private List<HashMap<String, String>> getPlaces(JSONObject jObject) {
+            List<HashMap<String, String>> placesList = new ArrayList<>();
+            HashMap<String, String> placeMap = null;
+
+            Log.d("Places", "getPlaces");
+
+            for(int x = 0; x < jObject.length();x++){
+                try {
+                    JSONObject jsonPart = new JSONObject(jObject.getString(jObject.names().get(x).toString()));
+
+                    if(jsonPart.has("location")){
+                        placeMap = getPlace(jsonPart);
+                        placesList.add(placeMap);
+                        Log.d("Places", "Adding");
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+            return placesList;
+        }
+
+        private HashMap<String, String> getPlace(JSONObject googlePlaceJson) {
+            HashMap<String, String> placeMap = new HashMap<String, String>();
+
+            //string is displayed as -NA- in default when there is no name available
+            String placeName = "-NA-";
+            String latitude = "";
+            String longitude = "";
+            String comment = "";
+            String user = "";
+
+            Log.d("getPlace", "Entered");
+
+            try {
+                placeName = googlePlaceJson.getJSONObject("location").getString("name");
+                if(googlePlaceJson.has("comment")){
+                    comment = googlePlaceJson.getString("comment");
+                }
+
+                latitude = googlePlaceJson.getString("latitude");
+                longitude = googlePlaceJson.getString("longitude");
+                user = googlePlaceJson.getString("user");
+
+                placeMap.put("place_name", placeName);
+                placeMap.put("lat", latitude);
+                placeMap.put("lng", longitude);
+                placeMap.put("comment",comment);
+                placeMap.put("user",user);
+                Log.d("getPlace", "Putting Places");
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            return placeMap;
         }
     }
 }

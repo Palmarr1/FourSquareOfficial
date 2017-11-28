@@ -21,7 +21,9 @@ import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.EditText;
+import android.widget.Toast;
 
+import com.facebook.AccessToken;
 import com.facebook.all.All;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
@@ -237,7 +239,15 @@ public class locationActivity extends AppCompatActivity implements AdapterView.O
 
         return 0;
     }
+    public void getFriendsList (View v){
+        AccessToken accessToken = AccessToken.getCurrentAccessToken();
+        if(accessToken == null){
+            Toast.makeText(getApplicationContext(), "User Account is not Linked to Facebook", Toast.LENGTH_SHORT).show();
+        }else {
 
+        }
+
+    }
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         AllLocation item = adapter.getItem(position);
 

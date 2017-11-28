@@ -9,4 +9,10 @@
     <string name="instClientSecret">ce1135d7758e44fda143c4ae02ffe211</string>
     <string name="instReDirect">https://web.njit.edu/~rlp25/</string>
     <string name="title_activity_pictures">Pictures</string>
+
+    <string-array name="keyword">
+        <item></item>
+        <item>Terrible</item>
+        <item>Great</item>
+    </string-array>
 </resources>
