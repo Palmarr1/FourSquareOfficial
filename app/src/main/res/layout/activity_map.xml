@@ -16,8 +16,5 @@
         android:onClick="getFriends">
     </Button>
 
-    <Spinner
-        android:id="@+id/KeyWord"
-        android:onClick="highlight">
-    </Spinner>
+
 </fragment>

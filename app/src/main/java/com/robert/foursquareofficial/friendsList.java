@@ -11,7 +11,7 @@ import org.json.JSONException;
 
 import java.util.ArrayList;
 
-public class FriendsList extends AppCompatActivity {
+public class friendsList extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,9 +33,9 @@ public class FriendsList extends AppCompatActivity {
             e.printStackTrace();
         }
 
-        //ArrayAdapter adapter = new ArrayAdapter<String>(this, R.layout.activity_listview, friends); // simple textview for list item
-        //ListView listView = (ListView) findViewById(R.id.listView);
-        //listView.setAdapter(adapter);
+        ArrayAdapter adapter = new ArrayAdapter<String>(this, R.layout.listview, friends); // simple textview for list item
+        ListView listView = (ListView) findViewById(R.id.listView);
+        listView.setAdapter(adapter);
     }
 
 }

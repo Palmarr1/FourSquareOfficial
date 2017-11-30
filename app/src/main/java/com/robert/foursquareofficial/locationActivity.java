@@ -24,11 +24,16 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.facebook.AccessToken;
+import com.facebook.GraphRequest;
+import com.facebook.GraphRequestAsyncTask;
+import com.facebook.GraphResponse;
+import com.facebook.HttpMethod;
 import com.facebook.all.All;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.InputStream;
@@ -244,10 +249,32 @@ public class locationActivity extends AppCompatActivity implements AdapterView.O
         if(accessToken == null){
             Toast.makeText(getApplicationContext(), "User Account is not Linked to Facebook", Toast.LENGTH_SHORT).show();
         }else {
+            GraphRequestAsyncTask graphRequestAsyncTask = new GraphRequest(
+                    accessToken,
+                    //AccessToken.getCurrentAccessToken(),
+                    "/me/friends",
+                    null,
+                    HttpMethod.GET,
+                    new GraphRequest.Callback() {
+                        public void onCompleted(GraphResponse response) {
+                            Intent intent = new Intent(locationActivity.this,friendsList.class);
+                            try {
+                                Log.i("I",response.toString());
+                                JSONArray rawName = response.getJSONObject().getJSONArray("data");
+                                Log.i("I",Integer.toString(rawName.length()));
+                                intent.putExtra("jsondata", rawName.toString());
+                                startActivity(intent);
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+            ).executeAsync();
 
         }
 
     }
+
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         AllLocation item = adapter.getItem(position);
 
