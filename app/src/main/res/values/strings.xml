@@ -11,8 +11,8 @@
     <string name="title_activity_pictures">Pictures</string>
 
     <string-array name="keyword">
-        <item></item>
         <item>Terrible</item>
         <item>Great</item>
+        <item> </item>
     </string-array>
 </resources>

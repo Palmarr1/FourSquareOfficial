@@ -7,6 +7,9 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -43,7 +46,12 @@ public class Map extends FragmentActivity implements OnMapReadyCallback {
 
     private GoogleMap mainMap;
     public ArrayList<String> aList;
-    public Spinner spinner;
+    public Button button;
+    public String currentUser;
+    public ArrayList<MarkerOptions> userMarkerArray = new ArrayList<MarkerOptions>();
+    public ArrayList<MarkerOptions> friendsMarkerArray = new ArrayList<MarkerOptions>();
+    public CheckBox chkTerrible;
+    public CheckBox chkGreat;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,13 +60,61 @@ public class Map extends FragmentActivity implements OnMapReadyCallback {
 
         SupportMapFragment mapFrag = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFrag.getMapAsync(this);
+        button = (Button)findViewById(R.id.friendsList);
+        chkTerrible = (CheckBox)findViewById(R.id.chkTerrible);
+        chkGreat = (CheckBox)findViewById(R.id.chkGreat);
 
+        chkGreat.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(friendsMarkerArray.size() != 0){
+                    mainMap.clear();
+                    for(MarkerOptions m : friendsMarkerArray){
+                        if(chkTerrible.isChecked()){
+                            if(m.getTitle().toLowerCase().contains("terrible")){
+                                mainMap.addMarker(m);
+                            }
+                        }else if(chkGreat.isChecked()){
+                            if(m.getTitle().toLowerCase().contains("great")){
+                                mainMap.addMarker(m);
+                            }
+                        }else{
+                            mainMap.addMarker(m);
+                        }
+
+                    }
+                }
+
+            }
+        });
+
+        chkTerrible.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(friendsMarkerArray.size() != 0){
+                    mainMap.clear();
+                    for(MarkerOptions m : friendsMarkerArray){
+                        if(chkTerrible.isChecked()){
+                            if(m.getTitle().toLowerCase().contains("terrible")){
+                                mainMap.addMarker(m);
+                            }
+                        }else if(chkGreat.isChecked()){
+                            if(m.getTitle().toLowerCase().contains("great")){
+                                mainMap.addMarker(m);
+                            }
+                        }else{
+                            mainMap.addMarker(m);
+                        }
+
+                    }
+                }
+
+            }
+        });
         Bundle b = getIntent().getExtras();
 
         aList = b.getStringArrayList("list");
-
-        spinner = (Spinner)findViewById(R.id.KeyWord);
-
+        currentUser = b.getString("user");
 
     }
 
@@ -98,6 +154,7 @@ public class Map extends FragmentActivity implements OnMapReadyCallback {
 
             LatLng stock = new LatLng(Double.parseDouble(temp[1]),Double.parseDouble(temp[0]));
             mainMap.addMarker(new MarkerOptions().position(stock).title(temp[2]));
+            userMarkerArray.add(new MarkerOptions().position(stock).title(temp[2]));
         }
 
         final LatLng stock = new LatLng(40.7423, -74.1793);
@@ -156,14 +213,34 @@ public class Map extends FragmentActivity implements OnMapReadyCallback {
     }
     public void highlight(View v){
     }
-    public void getFriends(View v){
-        Log.i("TEST!!!","HERE");
-        DownloadJSON dJson = new DownloadJSON();
+    public void showComments(View v){
 
-        String resultsTemp = "";
-        try{
-            resultsTemp = dJson.execute().get();
-        }catch(Exception e){e.printStackTrace();}
+    }
+    public void getFriends(View v){
+
+        if(button.getText().equals("Show Friends")){
+            if(friendsMarkerArray.size() == 0){
+                DownloadJSON dJson = new DownloadJSON();
+                String resultsTemp = "";
+                try{
+                    resultsTemp = dJson.execute().get();
+                }catch(Exception e){e.printStackTrace();}
+            }else{
+                for(MarkerOptions m : friendsMarkerArray){
+                    mainMap.addMarker(m);
+
+                }
+            }
+            button.setText("Hide Friends");
+        }else{
+            mainMap.clear();
+            for(MarkerOptions m : userMarkerArray){
+                mainMap.addMarker(m);
+            }
+            button.setText("Show Friends");
+        }
+
+
     }
     public class DownloadJSON extends AsyncTask<String, Void, String> {
 
@@ -215,18 +292,22 @@ public class Map extends FragmentActivity implements OnMapReadyCallback {
                 Log.d("onPostExecute","Entered into showing locations");
                 MarkerOptions markerOptions = new MarkerOptions();
                 HashMap<String, String> googlePlace = friendPlacesList.get(i);
-                double lat = Double.parseDouble(googlePlace.get("lat"));
-                double lng = Double.parseDouble(googlePlace.get("lng"));
+                if(googlePlace.containsKey("lat")){
+                    double lat = Double.parseDouble(googlePlace.get("lat"));
+                    double lng = Double.parseDouble(googlePlace.get("lng"));
 
-                String name = googlePlace.get("place_name");
-                String comment = googlePlace.get("comment");
-                String user = googlePlace.get("user");
+                    String name = googlePlace.get("place_name");
+                    String comment = googlePlace.get("comment");
+                    String user = googlePlace.get("user");
 
-                LatLng latLng = new LatLng(lat, lng);
-                markerOptions.position(latLng);
-                markerOptions.title(user + "(" + comment +")\n" + name);
-                markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
-                mainMap.addMarker(markerOptions);
+                    LatLng latLng = new LatLng(lat, lng);
+                    markerOptions.position(latLng);
+                    markerOptions.title(user + "(\"" + comment +"\")\n" + name);
+                    markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
+
+                    mainMap.addMarker(markerOptions);
+                    friendsMarkerArray.add(markerOptions);
+                }
             }
         }
     }
@@ -281,21 +362,23 @@ public class Map extends FragmentActivity implements OnMapReadyCallback {
             Log.d("getPlace", "Entered");
 
             try {
-                placeName = googlePlaceJson.getJSONObject("location").getString("name");
-                if(googlePlaceJson.has("comment")){
-                    comment = googlePlaceJson.getString("comment");
+                if(!googlePlaceJson.getString("user").equals(currentUser)){
+                    placeName = googlePlaceJson.getJSONObject("location").getString("name");
+                    if(googlePlaceJson.has("comment")){
+                        comment = googlePlaceJson.getString("comment");
+                    }
+
+                    latitude = googlePlaceJson.getString("latitude");
+                    longitude = googlePlaceJson.getString("longitude");
+                    user = googlePlaceJson.getString("user");
+
+                    placeMap.put("place_name", placeName);
+                    placeMap.put("lat", latitude);
+                    placeMap.put("lng", longitude);
+                    placeMap.put("comment",comment);
+                    placeMap.put("user",user);
+                    Log.d("getPlace", "Putting Places");
                 }
-
-                latitude = googlePlaceJson.getString("latitude");
-                longitude = googlePlaceJson.getString("longitude");
-                user = googlePlaceJson.getString("user");
-
-                placeMap.put("place_name", placeName);
-                placeMap.put("lat", latitude);
-                placeMap.put("lng", longitude);
-                placeMap.put("comment",comment);
-                placeMap.put("user",user);
-                Log.d("getPlace", "Putting Places");
             } catch (JSONException e) {
                 e.printStackTrace();
             }

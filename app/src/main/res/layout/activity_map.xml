@@ -6,15 +6,33 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-
-
-    <Button
-        android:id="@+id/friendsList"
+    <LinearLayout
+        android:orientation="horizontal"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="GET FRIENDS"
-        android:onClick="getFriends">
-    </Button>
+        android:layout_height="wrap_content">
+        <Button
+            android:id="@+id/friendsList"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Show Friends"
+            android:onClick="getFriends">
+        </Button>
+
+        <CheckBox
+            android:id="@+id/chkTerrible"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Terrible"
+            />
+
+        <CheckBox
+            android:id="@+id/chkGreat"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Great"
+            />
+
+    </LinearLayout>
 
 
 </fragment>

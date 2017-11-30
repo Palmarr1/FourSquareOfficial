@@ -497,6 +497,7 @@ public class locationActivity extends AppCompatActivity implements AdapterView.O
 
         }
         b.putStringArrayList("list",aList);
+        b.putString("user",currentUser);
         i.putExtras(b);
 
         startActivity(i);
