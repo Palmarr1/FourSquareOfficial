@@ -1,6 +1,8 @@
 package com.robert.foursquareofficial;
 
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
@@ -33,6 +35,10 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -117,7 +123,6 @@ public class Map extends FragmentActivity implements OnMapReadyCallback {
         currentUser = b.getString("user");
 
     }
-
     @Override
     public void onMapReady(GoogleMap map) {
 
@@ -172,10 +177,33 @@ public class Map extends FragmentActivity implements OnMapReadyCallback {
         map.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
             @Override
             public boolean onMarkerClick(Marker marker) {
-                if (marker.equals(stock)) {
-                    Toast.makeText(getApplicationContext(), "40.7423, 74.1793", Toast.LENGTH_SHORT).show();
-                }
                 return false;
+            }
+        });
+        map.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
+            @Override
+            public void onInfoWindowClick(Marker marker) {
+                Log.i("LINK", "HERE");
+                DownloadYelp yelp = new DownloadYelp();
+
+                String resultsTemp = "";
+                try {
+                    String title = "";
+                    if (marker.getTitle().contains(")")) {
+                        title = marker.getTitle().substring(marker.getTitle().indexOf(")"), marker.getTitle().length());
+                    } else {
+                        title = marker.getTitle();
+                    }
+                    resultsTemp = yelp.execute(title, Double.toString(marker.getPosition().latitude), Double.toString(marker.getPosition().longitude)).get();
+                    Log.d("LINK", resultsTemp);
+
+                    ;
+                    Intent i = new Intent(Intent.ACTION_VIEW);
+                    i.setData(Uri.parse(resultsTemp));
+                    startActivity(i);
+                } catch (Exception e) {
+                    Toast.makeText(getApplicationContext(), "Error Finding Yelp", Toast.LENGTH_SHORT);
+                }
             }
         });
     }
@@ -211,11 +239,6 @@ public class Map extends FragmentActivity implements OnMapReadyCallback {
 
         }
     }
-    public void highlight(View v){
-    }
-    public void showComments(View v){
-
-    }
     public void getFriends(View v){
 
         if(button.getText().equals("Show Friends")){
@@ -244,8 +267,8 @@ public class Map extends FragmentActivity implements OnMapReadyCallback {
     }
     public class DownloadJSON extends AsyncTask<String, Void, String> {
 
-        @Override
-        protected String doInBackground(String... strings) {
+                @Override
+                protected String doInBackground(String... strings) {
 
             String finalLink = "https://foursquarenjit.firebaseio.com/locations.json";
 
@@ -385,4 +408,41 @@ public class Map extends FragmentActivity implements OnMapReadyCallback {
             return placeMap;
         }
     }
+    public class DownloadYelp extends AsyncTask<String, Void, String> {
+
+        @Override
+        protected String doInBackground(String... strings) {
+            String begLink = "https://www.yelp.com/search?find_desc=";
+            String temp = "";
+
+            String[] split = strings[0].split(" ");
+
+            for(String s : split){
+                temp += s + "+";
+            }
+            String finalLink = begLink + temp.substring(0, temp.length() - 1) + "&find_loc=" + strings[1] +"%2C" + strings[2];
+            Log.i("LINK",finalLink);
+            String result = "";
+            Document doc;
+
+            try{
+                doc = Jsoup.connect(finalLink).get();
+
+                Elements links = doc.getElementsByClass("indexed-biz-name");
+
+                for(Element e : links){
+                    if(e.text().toString().contains("1.")){
+                        result = e.getElementsByAttributeValue("class","biz-name js-analytics-click").attr("abs:href");
+                        break;
+                    }
+                }
+
+            }catch(Exception e){
+                e.printStackTrace(System.out);
+            }
+            return result;
+
+        }
+    }
+
 }
