@@ -322,10 +322,11 @@ public class Map extends FragmentActivity implements OnMapReadyCallback {
                     String name = googlePlace.get("place_name");
                     String comment = googlePlace.get("comment");
                     String user = googlePlace.get("user");
+                    String rating = googlePlace.get("rating");
 
                     LatLng latLng = new LatLng(lat, lng);
                     markerOptions.position(latLng);
-                    markerOptions.title(user + "(\"" + comment +"\")\n" + name);
+                    markerOptions.title("User: " + user + "\nComment: (\"" + comment +"\")\nRating: " + rating + "Location \n" + name);
                     markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
 
                     mainMap.addMarker(markerOptions);
@@ -381,6 +382,7 @@ public class Map extends FragmentActivity implements OnMapReadyCallback {
             String longitude = "";
             String comment = "";
             String user = "";
+            String rating = "";
 
             Log.d("getPlace", "Entered");
 
@@ -389,6 +391,9 @@ public class Map extends FragmentActivity implements OnMapReadyCallback {
                     placeName = googlePlaceJson.getJSONObject("location").getString("name");
                     if(googlePlaceJson.has("comment")){
                         comment = googlePlaceJson.getString("comment");
+                    }
+                    if(googlePlaceJson.has("rating")){
+                        rating = googlePlaceJson.getString("rating");
                     }
 
                     latitude = googlePlaceJson.getString("latitude");
@@ -400,6 +405,7 @@ public class Map extends FragmentActivity implements OnMapReadyCallback {
                     placeMap.put("lng", longitude);
                     placeMap.put("comment",comment);
                     placeMap.put("user",user);
+                    placeMap.put("rating",rating);
                     Log.d("getPlace", "Putting Places");
                 }
             } catch (JSONException e) {
