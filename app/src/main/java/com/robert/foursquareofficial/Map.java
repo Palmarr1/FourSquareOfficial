@@ -44,7 +44,10 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
@@ -58,6 +61,7 @@ public class Map extends FragmentActivity implements OnMapReadyCallback {
     public ArrayList<MarkerOptions> friendsMarkerArray = new ArrayList<MarkerOptions>();
     public CheckBox chkTerrible;
     public CheckBox chkGreat;
+    public String curDate;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,6 +73,10 @@ public class Map extends FragmentActivity implements OnMapReadyCallback {
         button = (Button)findViewById(R.id.friendsList);
         chkTerrible = (CheckBox)findViewById(R.id.chkTerrible);
         chkGreat = (CheckBox)findViewById(R.id.chkGreat);
+
+        DateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy");
+        Date date = new Date();
+        curDate = dateFormat.format(date).toString();
 
         chkGreat.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -177,6 +185,19 @@ public class Map extends FragmentActivity implements OnMapReadyCallback {
         map.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
             @Override
             public boolean onMarkerClick(Marker marker) {
+                DownloadYelpData yelp = new DownloadYelpData();
+
+                String resultsTemp = "";
+                try {
+                    String title = marker.getTitle();
+                    if(title.contains("###")){
+                        title = marker.getTitle().substring(marker.getTitle().indexOf("Location: ") + 10, marker.getTitle().length());
+                        resultsTemp = yelp.execute(title, Double.toString(marker.getPosition().latitude), Double.toString(marker.getPosition().longitude)).get();
+
+                        marker.setTitle(marker.getTitle().replace("###",resultsTemp));
+                    }
+                } catch (Exception e) {
+                }
                 return false;
             }
         });
@@ -189,8 +210,8 @@ public class Map extends FragmentActivity implements OnMapReadyCallback {
                 String resultsTemp = "";
                 try {
                     String title = "";
-                    if (marker.getTitle().contains(")")) {
-                        title = marker.getTitle().substring(marker.getTitle().indexOf(")"), marker.getTitle().length());
+                    if (marker.getTitle().contains("Location: ")) {
+                        title = marker.getTitle().substring(marker.getTitle().indexOf("Location: ") + 10, marker.getTitle().length());
                     } else {
                         title = marker.getTitle();
                     }
@@ -265,6 +286,38 @@ public class Map extends FragmentActivity implements OnMapReadyCallback {
 
 
     }
+    public class DownloadYelpData extends AsyncTask<String, Void, String> {
+
+        @Override
+        protected String doInBackground(String... strings) {
+            String begLink = "https://www.yelp.com/search?find_desc=";
+            String temp = "";
+
+            String[] split = strings[0].split(" ");
+
+            for(String s : split){
+                temp += s + "+";
+            }
+            String finalLink = begLink + temp.substring(0, temp.length() - 1) + "&find_loc=" + strings[1] +"%2C" + strings[2];
+            Log.i("LINK",finalLink);
+            String result = "";
+            Document doc;
+
+            try{
+                doc = Jsoup.connect(finalLink).get();
+
+                Elements links = doc.getElementsByClass("biz-rating biz-rating-large clearfix");
+
+                Element f = links.get(0);
+                result = f.getElementsByClass("offscreen").get(0).attr("alt").toString() + "( " + f.getElementsByClass("review-count rating-qualifier").get(0).text() + ")";
+            }catch(Exception e){
+                result = "NO YELP DATA";
+            }
+
+            return result;
+
+        }
+    }
     public class DownloadJSON extends AsyncTask<String, Void, String> {
 
                 @Override
@@ -323,11 +376,21 @@ public class Map extends FragmentActivity implements OnMapReadyCallback {
                     String comment = googlePlace.get("comment");
                     String user = googlePlace.get("user");
                     String rating = googlePlace.get("rating");
+                    String date = googlePlace.get("date");
 
                     LatLng latLng = new LatLng(lat, lng);
                     markerOptions.position(latLng);
-                    markerOptions.title("User: " + user + "\nComment: (\"" + comment +"\")\nRating: " + rating + "Location \n" + name);
-                    markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
+
+                    Log.i("LINK", "HERE");
+
+                    markerOptions.title("User: " + user + "\nComment: \"" + comment +"\"\nRating: " + rating + "\nYELP: " + "###" + "\nLocation: " + name);
+
+                    if(curDate.equals(date)){
+                        markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW));
+                    }else{
+                        markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
+                    }
+
 
                     mainMap.addMarker(markerOptions);
                     friendsMarkerArray.add(markerOptions);
@@ -383,6 +446,7 @@ public class Map extends FragmentActivity implements OnMapReadyCallback {
             String comment = "";
             String user = "";
             String rating = "";
+            String date = "";
 
             Log.d("getPlace", "Entered");
 
@@ -399,6 +463,7 @@ public class Map extends FragmentActivity implements OnMapReadyCallback {
                     latitude = googlePlaceJson.getString("latitude");
                     longitude = googlePlaceJson.getString("longitude");
                     user = googlePlaceJson.getString("user");
+                    date = googlePlaceJson.getString("datetime");
 
                     placeMap.put("place_name", placeName);
                     placeMap.put("lat", latitude);
@@ -406,6 +471,7 @@ public class Map extends FragmentActivity implements OnMapReadyCallback {
                     placeMap.put("comment",comment);
                     placeMap.put("user",user);
                     placeMap.put("rating",rating);
+                    placeMap.put("date",date);
                     Log.d("getPlace", "Putting Places");
                 }
             } catch (JSONException e) {
@@ -439,6 +505,7 @@ public class Map extends FragmentActivity implements OnMapReadyCallback {
                 for(Element e : links){
                     if(e.text().toString().contains("1.")){
                         result = e.getElementsByAttributeValue("class","biz-name js-analytics-click").attr("abs:href");
+                        Log.i("RESULT",result);
                         break;
                     }
                 }
